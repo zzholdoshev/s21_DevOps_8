@@ -1,0 +1,75 @@
+---
+- name: Install necessary packages for Consul and Envoy
+  apt:
+    name:
+      - wget
+      - unzip
+      - curl
+      - tor  # hashicorp has banned downloads from Russia, in order to bypass it we will use TOR
+      - proxychains
+    state: present
+    update_cache: true
+
+- name: start tor
+  service: 
+    name: tor
+    state: started
+
+- name: Download Consul ZIP file using proxychains & tor to download consul
+  command: 
+    proxychains curl -Lo /tmp/consul.zip https://releases.hashicorp.com/consul/1.20.2/consul_1.20.2_linux_amd64.zip
+  args:
+    creates: /tmp/consul.zip  # This prevents re-downloading if the file already exists
+
+- name: Unzip Consul
+  unarchive:
+    src: /tmp/consul.zip
+    dest: /usr/local/bin/
+    remote_src: yes
+
+
+- name: Create directories for Consul
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/consul
+    - /opt/consul/data
+    - /etc/consul.d
+    - /etc/consul.d/certs
+
+- name: Copy Consul certificates
+  copy:
+    src: /vagrant/src/consul01/certs/
+    dest: /etc/consul.d/certs/
+
+- name: Copy Consul server configuration file
+  copy:
+    src: /vagrant/src/consul01/consul_server.hcl
+    dest: /etc/consul.d/consul.hcl
+
+- name: Create Consul systemd service
+  copy:
+   content: |
+     [Unit]
+     Description=Consul Service
+     After=network.target
+
+     [Service]
+     ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+     Restart=on-failure
+
+     [Install]
+     WantedBy=multi-user.target
+   dest: /etc/systemd/system/consul.service
+   mode: '0644'
+
+- name: Reload systemd manager configuration
+  command: systemctl daemon-reload
+
+- name: Start consul service
+  service:
+    name: consul
+    state: started
+    enabled: true
+

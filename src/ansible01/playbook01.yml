@@ -1,0 +1,12 @@
+---
+- name: Deploy Application
+  hosts: node01
+  roles:
+    - application
+
+- name: Setup Apache and Postgres
+  hosts: node02
+  roles:
+    - apache
+    - postgres
+

@@ -1,0 +1,16 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name: 
+      - postgresql
+      - python3-psycopg2
+    state: present
+
+- name: Ensure PostgreSQL is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create 'hotels_db' database
+  command: sudo -iu postgres psql postgres -c "CREATE DATABASE hotels_db"

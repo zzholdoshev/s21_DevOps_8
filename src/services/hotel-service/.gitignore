@@ -1,0 +1,29 @@
+# Dockerfile for Session Service
+FROM openjdk:8-jdk-alpine
+
+# Set working directory
+WORKDIR /session_service
+
+# Copy Maven wrapper and pom.xml
+COPY mvnw .
+COPY .mvn .
+COPY pom.xml .
+
+# Install dependencies
+RUN ./mvnw dependency:go-offline
+
+# Copy the source code
+COPY src ./src
+
+# Build the application
+RUN ./mvnw spring-boot:run
+# Define environment variables
+ENV POSTGRES_HOST=postgres
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV POSTGRES_DB=users_db
+
+# Run the application
+CMD ["java", "-jar", "target/*.jar"]
+

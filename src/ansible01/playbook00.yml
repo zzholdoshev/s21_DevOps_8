@@ -1,0 +1,29 @@
+---
+- name: Deploy Microservice Application
+  hosts: node01
+  become: true  
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install Docker
+      apt:
+        name: docker
+        state: present
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+    - name: Install Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'  # Set the permission to be exec
+
+    - name: Deploy microservice application
+      command: docker-compose up -d
+      args:
+        chdir: /vagrant/src/services

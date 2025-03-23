@@ -1,0 +1,31 @@
+---
+- name: Install PostgreSQL
+  become: yes
+  apt:
+    name: postgresql
+    state: present
+    update_cache: yes
+
+- name: Start PostgreSQL service
+  become: yes
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create a database
+  postgresql_db:
+    name: mydatabase
+    login_user: postgres
+    login_password: postgres
+    state: present
+
+- name: Create a table and insert records
+  postgresql_query:
+    db: mydatabase
+    login_user: postgres
+    login_password: postgres
+    query: CREATE TABLE IF NOT EXISTS mytable (id SERIAL PRIMARY KEY, 
+        name VARCHAR(50)); 
+        INSERT INTO mytable(name) VALUES('Record 1');
+

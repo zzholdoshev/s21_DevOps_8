@@ -1,0 +1,7 @@
+---
+- name: Start application using docker-compose
+  command: docker-compose up -d
+  args:
+          chdir: /vagrant/src/services
+
+

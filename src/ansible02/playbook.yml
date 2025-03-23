@@ -1,0 +1,24 @@
+---
+- hosts: consul_server
+  become: true
+  roles:
+    - role: install_consul_server
+      tags: consul_server
+
+- hosts: api, db
+  become: true
+  roles:
+    - role: install_consul_client
+      tags: consul_client
+
+- hosts: db
+  become: true
+  roles:
+    - role: install_db
+      tags: db
+
+- hosts: api
+  become: true
+  roles:
+    - role: install_hotels_service
+      tags: hotels_service

@@ -1,0 +1,53 @@
+---
+- name: Install OpenJDK 8
+  apt:
+    name: openjdk-8-jdk
+    state: present
+    update_cache: yes
+
+- name: Install Maven
+  apt:
+    name: maven
+    state: present
+    update_cache: yes
+
+- name: Copy hotel service 
+  copy:
+    src: /vagrant/src/services/hotel-service/
+    dest: /opt/hotel-service/
+    owner: vagrant
+    group: vagrant
+    mode: '0755'
+    force: false
+
+- name: Set environment variables for hotel service
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+  loop:
+    - 'POSTGRES_HOST=127.0.0.1'
+    - 'POSTGRES_PORT=5432'
+    - 'POSTGRES_DB=hotels_db'
+    - 'POSTGRES_USER=postgres'
+    - 'POSTGRES_PASSWORD=postgres'
+
+- name: Download dependencies
+  command: mvn dependency:go-offline
+  args:
+    chdir: /opt/hotel-service
+
+- name: Build the hotel-service JAR file
+  command: mvn package -DskipTests
+  args:
+    chdir: /opt/hotel-service
+
+- name: Reload environment variables
+  shell: source /etc/environment
+  args:
+    executable: /bin/bash
+
+- name: Start hotel-service
+  shell: "java -jar /opt/hotel-service/target/session-service-0.0.1-SNAPSHOT.jar > /opt/hotel-service/hotel-service.log 2>&1 &"
+  args:
+    executable: /bin/bash 
+
